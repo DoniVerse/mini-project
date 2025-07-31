@@ -10,67 +10,60 @@ export default async function handler(req, res) {
     await prisma.$connect();
     console.log('Database connected successfully');
     
-    // Run the migration SQL
-    const migrationSQL = `
-      -- Create users table
-      CREATE TABLE IF NOT EXISTS "users" (
+    // Run migrations one by one
+    const migrations = [
+      `CREATE TABLE IF NOT EXISTS "users" (
         "id" SERIAL PRIMARY KEY,
         "username" VARCHAR(50) UNIQUE NOT NULL,
         "email" VARCHAR(100) UNIQUE NOT NULL,
         "password" TEXT NOT NULL
-      );
+      )`,
       
-      -- Create categories table
-      CREATE TABLE IF NOT EXISTS "Category" (
+      `CREATE TABLE IF NOT EXISTS "Category" (
         "id" SERIAL PRIMARY KEY,
         "name" VARCHAR(50) UNIQUE NOT NULL
-      );
+      )`,
       
-      -- Create tags table
-      CREATE TABLE IF NOT EXISTS "Tag" (
+      `CREATE TABLE IF NOT EXISTS "Tag" (
         "id" SERIAL PRIMARY KEY,
         "name" VARCHAR(50) UNIQUE NOT NULL
-      );
+      )`,
       
-      -- Create posts table
-      CREATE TABLE IF NOT EXISTS "posts" (
+      `CREATE TABLE IF NOT EXISTS "posts" (
         "id" SERIAL PRIMARY KEY,
         "user_id" INTEGER NOT NULL,
         "content" TEXT NOT NULL,
         "created_at" TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
-        "categoryId" INTEGER,
-        FOREIGN KEY ("user_id") REFERENCES "users"("id"),
-        FOREIGN KEY ("categoryId") REFERENCES "Category"("id")
-      );
+        "categoryId" INTEGER
+      )`,
       
-      -- Create comments table
-      CREATE TABLE IF NOT EXISTS "comments" (
+      `CREATE TABLE IF NOT EXISTS "comments" (
         "id" SERIAL PRIMARY KEY,
         "post_id" INTEGER NOT NULL,
         "user_id" INTEGER NOT NULL,
         "content" TEXT NOT NULL,
-        "created_at" TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY ("post_id") REFERENCES "posts"("id"),
-        FOREIGN KEY ("user_id") REFERENCES "users"("id")
-      );
+        "created_at" TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP
+      )`,
       
-      -- Create post-tags relationship table
-      CREATE TABLE IF NOT EXISTS "_PostTags" (
+      `CREATE TABLE IF NOT EXISTS "_PostTags" (
         "A" INTEGER NOT NULL,
         "B" INTEGER NOT NULL,
-        FOREIGN KEY ("A") REFERENCES "posts"("id"),
-        FOREIGN KEY ("B") REFERENCES "Tag"("id"),
         UNIQUE("A", "B")
-      );
-    `;
+      )`
+    ];
     
-    await prisma.$executeRawUnsafe(migrationSQL);
+    console.log('Running migrations...');
+    for (let i = 0; i < migrations.length; i++) {
+      console.log(`Running migration ${i + 1}/${migrations.length}`);
+      await prisma.$executeRawUnsafe(migrations[i]);
+    }
+    
     console.log('Migration completed successfully');
-    
     await prisma.$disconnect();
     
     return res.status(200).json({
       message: 'Database migration completed successfully',
+      tablesCreated: migrations.length,
       timestamp: new Date().toISOString()
     });
     
