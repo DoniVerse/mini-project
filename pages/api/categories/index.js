@@ -1,5 +1,5 @@
-import prisma from '../../../../lib/prisma';
-import { verifyAuth } from '../../../../lib/auth';
+import prisma from '../../../lib/prisma';
+import { verifyAuth } from '../../../lib/auth';
 
 export default async function handler(req, res) {
   // Verify JWT token for all methods except GET and OPTIONS
