@@ -1,10 +1,12 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  schemas  = ["task_management"]
 }
 
 model User {
@@ -16,6 +18,7 @@ model User {
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
 
+  @@schema("task_management")
   @@map("users")
 }
 
@@ -34,6 +37,7 @@ model Task {
   user     User     @relation(fields: [userId], references: [id])
   category Category? @relation(fields: [categoryId], references: [id])
 
+  @@schema("task_management")
   @@map("tasks")
 }
 
@@ -46,6 +50,6 @@ model Category {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
+  @@schema("task_management")
   @@map("categories")
-}
 }
